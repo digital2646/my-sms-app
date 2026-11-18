@@ -1,0 +1,40 @@
+name: Unzip and Deploy Blazor PWA
+
+on:
+  push:
+    branches: [ main ] # Agar aapki branch 'master' hai to yahan master likhein
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Unzip release.zip & Setup PWA Files
+        run: |
+          mkdir -p ./deploy_site
+          unzip -o release.zip -d ./deploy_site
+          touch ./deploy_site/.nojekyll
+          cp ./deploy_site/index.html ./deploy_site/404.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './deploy_site'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
